@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selvakalanjiyam Coffee Bar</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --saffron:#FF6B00; --dark-saffron:#cc5500;
+  --cream:#FFF8F0; --brown:#3B1A00; --light-brown:#7A4520;
+  --green:#2E7D32; --red:#C62828;
+  --shadow:0 4px 20px rgba(59,26,0,0.15);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  background:var(--cream); font-family:'Baloo Thambi 2','Noto Sans Tamil',sans-serif;
+  min-height:100vh;
+  background-image:radial-gradient(circle at 20% 20%,#ffe0b2 0%,transparent 50%),
+                   radial-gradient(circle at 80% 80%,#ffccbc 0%,transparent 50%);
+}
+.app { max-width:440px; margin:0 auto; padding:14px; }
+
+.header {
+  background:linear-gradient(135deg,var(--saffron),var(--dark-saffron));
+  border-radius:20px; padding:18px 20px; text-align:center; color:white;
+  box-shadow:var(--shadow); margin-bottom:16px; position:relative; overflow:hidden;
+}
+.header::before { content:'☕'; font-size:80px; position:absolute; right:-10px; top:-10px; opacity:.12; }
+.shop-name { font-size:1.7rem; font-weight:800; letter-spacing:1px; text-shadow:0 2px 4px rgba(0,0,0,.3); }
+.shop-sub  { font-size:.8rem; opacity:.9; margin-top:2px; }
+
+.section-title {
+  font-size:.95rem; font-weight:700; color:var(--brown);
+  margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.section-title::after { content:''; flex:1; height:2px; background:linear-gradient(to right,var(--saffron),transparent); border-radius:2px; }
+
+.edit-toggle { display:flex; justify-content:flex-end; margin-bottom:8px; }
+.btn-edit {
+  background:#FFF3E0; color:var(--saffron); border:2px solid var(--saffron);
+  border-radius:10px; padding:5px 12px; font-family:inherit; font-size:.82rem; font-weight:700; cursor:pointer;
+}
+.add-item-box {
+  display:none; background:white; border-radius:14px; padding:14px;
+  margin-bottom:10px; box-shadow:0 2px 10px rgba(59,26,0,.08); border:2px dashed var(--saffron);
+}
+.add-item-title { font-weight:700; color:var(--brown); margin-bottom:8px; font-size:.88rem; }
+.add-row { display:flex; gap:6px; flex-wrap:wrap; }
+.edit-input {
+  border:1.5px solid #FFD0A0; border-radius:8px; padding:5px 8px;
+  font-family:inherit; font-size:.85rem; color:var(--brown); background:#FFF8F0; outline:none;
+}
+.edit-input:focus { border-color:var(--saffron); }
+.edit-emoji { width:48px; text-align:center; }
+.edit-name  { width:100px; }
+.edit-price { width:60px; }
+.btn-add-item {
+  background:var(--saffron); color:white; border:none; border-radius:8px;
+  padding:6px 14px; font-family:inherit; font-size:.85rem; font-weight:700; cursor:pointer; margin-top:8px; width:100%;
+}
+.btn-save-item { background:#e8f5e9; color:var(--green); border:none; border-radius:8px; padding:5px 10px; font-family:inherit; font-size:.8rem; font-weight:700; cursor:pointer; }
+.btn-del-item  { background:#ffebee; color:var(--red); border:none; border-radius:8px; padding:5px 10px; font-family:inherit; font-size:.8rem; font-weight:700; cursor:pointer; }
+
+.menu-grid { display:grid; gap:10px; margin-bottom:16px; }
+.menu-item {
+  background:white; border-radius:14px; padding:12px 14px;
+  display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 2px 10px rgba(59,26,0,.08); border:2px solid transparent; transition:all .2s;
+}
+.menu-item:hover { border-color:var(--saffron); }
+.item-info { display:flex; align-items:center; gap:10px; }
+.item-emoji { font-size:1.5rem; }
+.item-name  { font-weight:600; color:var(--brown); font-size:.92rem; }
+.item-price { font-size:.78rem; color:var(--light-brown); margin-top:1px; }
+.qty-control { display:flex; align-items:center; gap:6px; }
+.qty-btn {
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  font-size:1.1rem; font-weight:700; display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.qty-btn.minus { background:#FFF3E0; color:var(--saffron); }
+.qty-btn.minus:hover { background:var(--saffron); color:white; }
+.qty-btn.plus  { background:var(--saffron); color:white; }
+.qty-btn.plus:hover { background:var(--dark-saffron); }
+.qty-input {
+  width:44px; height:30px; border:2px solid #FFD0A0; border-radius:8px;
+  text-align:center; font-size:.95rem; font-weight:800; font-family:inherit;
+  color:var(--brown); background:#FFF8F0; outline:none;
+}
+.qty-input:focus { border-color:var(--saffron); }
+
+.bill-box { background:white; border-radius:18px; padding:18px; box-shadow:var(--shadow); margin-bottom:14px; }
+.bill-rows { margin:10px 0; }
+.bill-row {
+  display:flex; justify-content:space-between; padding:6px 0;
+  font-size:.88rem; color:var(--brown); border-bottom:1px dashed #f0e0d0;
+}
+.bill-row:last-child { border-bottom:none; }
+.bill-row .name   { color:var(--light-brown); }
+.bill-row .amount { font-weight:600; }
+.total-row {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:12px; padding-top:12px; border-top:2px solid var(--saffron);
+}
+.total-label  { font-size:1.05rem; font-weight:700; color:var(--brown); }
+.total-amount { font-size:1.45rem; font-weight:800; color:var(--saffron); }
+.empty-bill   { text-align:center; color:#bbb; padding:18px 0; font-size:.88rem; }
+
+.qr-box {
+  background:white; border-radius:18px; padding:16px;
+  box-shadow:var(--shadow); margin-bottom:14px; text-align:center;
+  display:none; border:2px dashed #FFD0A0;
+}
+.qr-title  { font-weight:700; color:var(--brown); margin-bottom:3px; font-size:.92rem; }
+.qr-sub    { font-size:.76rem; color:var(--light-brown); margin-bottom:10px; }
+.qr-img-wrap { display:inline-block; border:3px solid var(--saffron); border-radius:12px; padding:7px; background:white; }
+.qr-upi    { margin-top:8px; font-size:.8rem; color:var(--light-brown); }
+.qr-amount { margin-top:5px; font-size:1.15rem; font-weight:800; color:var(--green); }
+
+.btn-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+.btn {
+  padding:13px; border:none; border-radius:12px;
+  font-family:inherit; font-size:.92rem; font-weight:700; cursor:pointer; transition:all .2s;
+}
+.btn-print { background:linear-gradient(135deg,var(--saffron),var(--dark-saffron)); color:white; box-shadow:0 4px 15px rgba(255,107,0,.4); }
+.btn-print:hover { transform:translateY(-2px); }
+.btn-clear { background:#FFF3E0; color:var(--light-brown); }
+
+.saved-tag {
+  font-size:.72rem; color:var(--green); font-weight:700;
+  text-align:right; margin-bottom:6px; opacity:0; transition:opacity .4s;
+}
+.saved-tag.show { opacity:1; }
+
+.receipt { display:none; }
+@media print {
+  body * { visibility:hidden; }
+  .receipt, .receipt * { visibility:visible; }
+  .receipt { display:block!important; position:fixed; top:0; left:0; width:100%; font-family:monospace; font-size:13px; padding:20px; color:#000; }
+  .r-line   { border-top:1px dashed #000; margin:6px 0; }
+  .r-center { text-align:center; }
+  .r-bold   { font-weight:bold; }
+  .r-big    { font-size:18px; }
+  .r-row    { display:flex; justify-content:space-between; }
+  .r-total  { font-size:16px; font-weight:bold; }
+  .r-qr     { text-align:center; margin:10px 0; }
+  .r-qr img { width:140px; height:140px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="shop-name">☕ SELVAKALANJIYAM</div>
+    <div class="shop-sub">Coffee Bar | செல்வக்களஞ்சியம் காபி பார்</div>
+  </div>
+
+  <div class="section-title">📋 Menu</div>
+  <div class="edit-toggle">
+    <button class="btn-edit" id="editToggleBtn" onclick="toggleEdit()">✏️ Edit Menu</button>
+  </div>
+  <div class="saved-tag" id="savedTag">✅ Menu saved!</div>
+  <div class="add-item-box" id="addItemBox">
+    <div class="add-item-title">➕ New Item Add Pannu</div>
+    <div class="add-row">
+      <input class="edit-input edit-emoji" id="newEmoji" placeholder="☕" maxlength="2"/>
+      <input class="edit-input edit-name"  id="newName"  placeholder="Item peyar"/>
+      <input class="edit-input edit-price" id="newPrice" placeholder="Price" type="number"/>
+    </div>
+    <button class="btn-add-item" onclick="addMenuItem()">➕ Add Item</button>
+    <div id="addError" style="display:none;color:red;font-size:.78rem;margin-top:5px;">Peyar & Price kodunga!</div>
+  </div>
+  <div class="menu-grid" id="menuGrid"></div>
+
+  <div class="section-title">🧾 Bill</div>
+  <div class="bill-box">
+    <div id="billContent"><div class="empty-bill">Ennum item select pannala... 🍵</div></div>
+    <div class="total-row" id="totalRow" style="display:none">
+      <div class="total-label">மொத்தம்</div>
+      <div class="total-amount" id="totalAmt">₹0</div>
+    </div>
+  </div>
+
+  <div class="qr-box" id="qrBox">
+    <div class="qr-title">📱 UPI மூலம் பணம் செலுத்துங்கள்</div>
+    <div class="qr-sub">Scan & Pay | ஸ்கேன் பண்ணி பே பண்ணுங்க</div>
+    <div class="qr-img-wrap"><div id="qrCanvas"></div></div>
+    <div class="qr-upi">PhonePe: <b>7397128060</b></div>
+    <div class="qr-amount" id="qrAmtDisplay"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-clear" onclick="clearAll()">🗑️ Clear</button>
+    <button class="btn btn-print" onclick="printBill()">🖨️ Print Bill</button>
+  </div>
+</div>
+
+<div class="receipt" id="receipt"></div>
+
+<script>
+const DEFAULT_MENU = [
+  { id:1, name:'Tea',           emoji:'🍵', price:10 },
+  { id:2, name:'Vadai',         emoji:'🍩', price:6  },
+  { id:3, name:'Coffee',        emoji:'☕', price:15 },
+  { id:4, name:'Parcel Tea',    emoji:'🧃', price:20 },
+  { id:5, name:'Parcel Coffee', emoji:'🥤', price:25 },
+  { id:6, name:'Cups',          emoji:'☕', price:1  },
+  { id:7, name:'Sweet Bonda',   emoji:'🍪', price:6  },
+  { id:8, name:'Onion Pakoda',  emoji:'🧅', price:12 },
+];
+
+const STORAGE_KEY = 'selva_menu_v2';
+
+// Load menu from localStorage, fallback to default
+function loadMenu() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_MENU));
+}
+
+// Save menu to localStorage
+function saveMenu() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(menuItems));
+    const tag = document.getElementById('savedTag');
+    tag.classList.add('show');
+    setTimeout(() => tag.classList.remove('show'), 1500);
+  } catch(e) {}
+}
+
+let menuItems = loadMenu();
+let qty = {}, editMode = false;
+let nextId = menuItems.length ? Math.max(...menuItems.map(i=>i.id)) + 1 : 1;
+menuItems.forEach(i => qty[i.id] = 0);
+
+const UPI_ID   = '7397128060@ybl';
+const UPI_NAME = 'Selvakalanjiyam Coffee Bar';
+
+function toggleEdit() {
+  editMode = !editMode;
+  const btn = document.getElementById('editToggleBtn');
+  btn.textContent      = editMode ? '✅ Done' : '✏️ Edit Menu';
+  btn.style.background = editMode ? '#FF6B00' : '#FFF3E0';
+  btn.style.color      = editMode ? 'white'   : '#FF6B00';
+  document.getElementById('addItemBox').style.display = editMode ? 'block' : 'none';
+  renderMenu();
+}
+
+function renderMenu() {
+  document.getElementById('menuGrid').innerHTML = menuItems.map(item => `
+    <div class="menu-item" style="flex-direction:column;align-items:stretch;gap:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="item-info">
+          <span class="item-emoji">${item.emoji}</span>
+          <div>
+            <div class="item-name">${item.name}</div>
+            <div class="item-price">₹${item.price} per piece</div>
+          </div>
+        </div>
+        <div class="qty-control">
+          <button class="qty-btn minus" onclick="change(${item.id},-1)">−</button>
+          <input type="number" class="qty-input" id="q${item.id}" value="${qty[item.id]||0}" min="0" oninput="setQty(${item.id},this.value)"/>
+          <button class="qty-btn plus"  onclick="change(${item.id}, 1)">+</button>
+        </div>
+      </div>
+      ${editMode ? `
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed #FFD0A0;">
+        <input class="edit-input edit-emoji" id="em${item.id}" value="${item.emoji}" maxlength="2"/>
+        <input class="edit-input edit-name"  id="en${item.id}" value="${item.name}"/>
+        <input class="edit-input edit-price" id="ep${item.id}" value="${item.price}" type="number"/>
+        <button class="btn-save-item" onclick="saveItem(${item.id})">💾 Save</button>
+        <button class="btn-del-item"  onclick="deleteItem(${item.id})">🗑️ Del</button>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function saveItem(id) {
+  const item = menuItems.find(i => i.id===id);
+  const e = document.getElementById('em'+id).value.trim();
+  const n = document.getElementById('en'+id).value.trim();
+  const p = parseInt(document.getElementById('ep'+id).value);
+  if (e) item.emoji = e;
+  if (n) item.name  = n;
+  if (p) item.price = p;
+  saveMenu();
+  renderMenu(); updateBill();
+}
+
+function deleteItem(id) {
+  menuItems = menuItems.filter(i => i.id!==id);
+  delete qty[id];
+  saveMenu();
+  renderMenu(); updateBill();
+}
+
+function addMenuItem() {
+  const emoji = document.getElementById('newEmoji').value.trim() || '🍽️';
+  const name  = document.getElementById('newName').value.trim();
+  const price = parseInt(document.getElementById('newPrice').value);
+  if (!name || !price) { document.getElementById('addError').style.display='block'; return; }
+  document.getElementById('addError').style.display='none';
+  menuItems.push({ id:nextId, name, emoji, price });
+  qty[nextId] = 0; nextId++;
+  saveMenu();
+  document.getElementById('newEmoji').value='';
+  document.getElementById('newName').value='';
+  document.getElementById('newPrice').value='';
+  renderMenu();
+}
+
+function change(id, delta) {
+  qty[id] = Math.max(0,(qty[id]||0)+delta);
+  const el = document.getElementById('q'+id);
+  if (el) el.value = qty[id];
+  updateBill();
+}
+function setQty(id, val) {
+  qty[id] = Math.max(0, parseInt(val)||0);
+  updateBill();
+}
+
+function updateBill() {
+  const selected    = menuItems.filter(i => qty[i.id]>0);
+  const billContent = document.getElementById('billContent');
+  const totalRow    = document.getElementById('totalRow');
+  const qrBox       = document.getElementById('qrBox');
+
+  if (!selected.length) {
+    billContent.innerHTML = '<div class="empty-bill">Ennum item select pannala... 🍵</div>';
+    totalRow.style.display='none'; qrBox.style.display='none'; return;
+  }
+  let total = 0;
+  billContent.innerHTML = '<div class="bill-rows">' + selected.map(item => {
+    const sub = item.price * qty[item.id]; total += sub;
+    return `<div class="bill-row"><span class="name">${item.emoji} ${item.name} × ${qty[item.id]}</span><span class="amount">₹${sub}</span></div>`;
+  }).join('') + '</div>';
+  document.getElementById('totalAmt').textContent = '₹' + total;
+  totalRow.style.display = 'flex';
+
+  const upiStr = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${total}&cu=INR`;
+  const qrDiv  = document.getElementById('qrCanvas');
+  qrDiv.innerHTML = '';
+  new QRCode(qrDiv, { text:upiStr, width:160, height:160, colorDark:'#3B1A00', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.M });
+  document.getElementById('qrAmtDisplay').textContent = '💰 Pay: ₹' + total;
+  qrBox.style.display = 'block';
+}
+
+function clearAll() {
+  menuItems.forEach(i => { qty[i.id]=0; const el=document.getElementById('q'+i.id); if(el) el.value=0; });
+  updateBill();
+}
+
+function printBill() {
+  const selected = menuItems.filter(i => qty[i.id]>0);
+  if (!selected.length) return;
+  let total = 0;
+  const now     = new Date();
+  const dateStr = now.toLocaleDateString('en-IN');
+  const timeStr = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const rows = selected.map(item => {
+    const sub = item.price * qty[item.id]; total += sub;
+    return `<div class="r-row"><span>${item.name} x${qty[item.id]}</span><span>Rs.${sub}</span></div>`;
+  }).join('');
+  const qrCanvas  = document.querySelector('#qrCanvas canvas');
+  const qrDataUrl = qrCanvas ? qrCanvas.toDataURL() : '';
+  document.getElementById('receipt').innerHTML = `
+    <div class="r-center r-bold r-big">SELVAKALANJIYAM COFFEE BAR</div>
+    <div class="r-center">Coffee Bar | செல்வக்களஞ்சியம்</div>
+    <div class="r-center" style="font-size:11px">${dateStr} | ${timeStr}</div>
+    <div class="r-line"></div>
+    <div class="r-row r-bold"><span>Item</span><span>Amount</span></div>
+    <div class="r-line"></div>${rows}
+    <div class="r-line"></div>
+    <div class="r-row r-total"><span>TOTAL</span><span>Rs.${total}/-</span></div>
+    <div class="r-line"></div>
+    <div class="r-qr">
+      <div style="font-weight:bold;margin-bottom:4px">📱 UPI மூலம் பே பண்ணுங்க</div>
+      ${qrDataUrl ? `<img src="${qrDataUrl}" width="140" height="140"/>` : ''}
+      <div style="font-size:11px;margin-top:4px">7397128060 | Rs.${total}/-</div>
+    </div>
+    <div class="r-line"></div>
+    <div class="r-center" style="margin-top:8px">Thank you! Mela vanga! 🙏</div>
+    <div class="r-center">வாங்க வாங்க!</div>`;
+  window.print();
+}
+
+renderMenu();
+</script>
+</body>
+</html>
